@@ -6,7 +6,7 @@ import { ChartBarStacked } from 'lucide-react';
 import { BaggageClaim } from 'lucide-react';
 import { UserRound } from 'lucide-react';
 import { ChartSpline } from 'lucide-react';
-import { Hospital } from 'lucide-react';
+import { ChartNoAxesCombined,BookText  } from 'lucide-react';
 import { Settings } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 export default function Sidebar() {
@@ -22,46 +22,41 @@ export default function Sidebar() {
 
       {/* scroll */}
 
-      <div className="flex-1 overflow-y-auto py-4 px-6 "> 
+      <div className="flex-1 overflow-y-auto py-4 px-6 ">
+        {/* dashboard */}
+        <Link to="/Dashboard">
           <button className="flex w-full  items-center px-4 py-3 gap-2 rounded-2xl bg-cyan-200 text-green-600 ${active === name ?}">
             <LayoutDashboard />
             <span className="text-base font-medium">Dashboard</span>
           </button>
+          </Link> 
+
           {/* prodects */}
-          <Link to="">
+          <Link to="/products">
           <button className="w-full flex items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-cyan-400">
-            <PackageSearch />
-            <span className="text-base font-medium">Products</span>
+                <ChartNoAxesCombined />
+            <span className="text-base font-medium">Statick Analytic</span>
           </button>
           </Link>
-         <button className="w-full flex items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-cyan-400">
-            <ChartBarStacked />
-            <span className="text-base font-medium">Categories</span>
-        </button>
+          
+       
         
-        <Link to="/Orders">
+        {/* invertry */}
+        <Link to="/Invortry">
         <button className="w-full flex items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-cyan-400">
-           <BaggageClaim />
-          <span className="text-base font-medium">Orders</span>
+          <BookText />
+          <span className="text-base font-medium">Invortry</span>
         </button></Link>
 
+
+
+        {/* customer */}
         <button className="flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-cyan-400">
           <UserRound />
-          <span className="text-base font-medium">Customers</span>
+          <span className="text-base font-medium">Add New Task</span>
         </button>
 
-        <button className="flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200  hover:text-cyan-400">
-          <Hospital />
-          <span className="text-base font-medium">Suppliers</span>
-        </button>
-          
-         <button className="flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200  hover:text-cyan-400">
-          <ChartSpline />
-          <span className="text-base font-medium">Report</span>
-        </button>
-        
       
-        
         <button className="w-full flex items-center gap-2 px-4 py-3 mt-4 rounded-lg text-gray-600 hover:bg-gray-300 hover:text-cyan-400">
            <Settings />
           <span className="text-base font-medium">Setting</span>
