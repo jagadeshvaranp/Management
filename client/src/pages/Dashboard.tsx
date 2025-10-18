@@ -1,7 +1,12 @@
 import React from 'react'
-
+import FertilizerDashboard from '../components/FertilizerDashboard'
+import Invortry from './Invortry'
 export default function Dashboard() {
   return (
-    <div>Dashboard</div>
+    <div>
+      <FertilizerDashboard />;
+      <Invortry />
+    </div>
+       
   )
 }

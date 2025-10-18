@@ -51,11 +51,12 @@ export default function Sidebar() {
 
 
         {/* customer */}
+        <Link to="/Addnew">
         <button className="flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-cyan-400">
           <UserRound />
           <span className="text-base font-medium">Add New Task</span>
         </button>
-
+        </Link>
       
         <button className="w-full flex items-center gap-2 px-4 py-3 mt-4 rounded-lg text-gray-600 hover:bg-gray-300 hover:text-cyan-400">
            <Settings />

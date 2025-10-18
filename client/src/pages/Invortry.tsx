@@ -75,7 +75,7 @@ export default function Invortry() {
       (state === "All States" || item.state === state)
   );
   return (
-    <div className="p-8 bg-gray-200 min-h-screen ">
+    <div className="p-8 bg-gray-100 min-h-screen ">
       <h1 className="text-2xl font-bold mb-6">
         Current Inventory & Supply Chain List
       </h1>

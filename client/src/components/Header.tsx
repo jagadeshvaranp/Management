@@ -2,6 +2,7 @@ import React from "react";
 import { ChevronRight } from "lucide-react";
 import { Bell } from "lucide-react";
 import { LogOut } from "lucide-react";
+
 import { Search } from "lucide-react";
 export default function Header() {
   return (
@@ -14,11 +15,16 @@ export default function Header() {
       <div className="flex space-x-4.5 text-center mr-10">
         {/* search */}
         <div className="relative w-80">
-          <input
-            type="text"
-            placeholder="Search Everething..."
-            className="w-full bg-gray-100 border border-gray-200 text-sm text-gray-700 rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-300"
-          />
+       <input
+         type="text"
+         placeholder="Search inventory, orders..."
+         className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+          text-sm placeholder:text-xs"
+        />
+
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+           
+        </div>
         </div>
 
         
