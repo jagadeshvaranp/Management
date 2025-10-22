@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
-// Types (same as your original)
 interface StockRecord {
-  _id?: string; // server uses _id
+  _id?: string;
   id?: string;
   fertilizerName: string;
   stateLocation: string;
@@ -20,73 +18,9 @@ interface FormData {
   unitPrice: string;
 }
 
-// Icons & small components (same as your original; shortened here for brevity)
-const PlusIcon = () => (/* same svg */ (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
-));
+const API_BASE = "http://localhost:5000/api/stocks";
 
-const CheckIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-  </svg>
-);
-
-const SuccessMessage = ({ message, onClose }: { message: string; onClose: () => void }) => (
-  <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-fade-in z-50">
-    <div className="bg-white rounded-full p-1"><CheckIcon /></div>
-    <span className="font-medium">{message}</span>
-    <button onClick={onClose} className="ml-2 hover:bg-green-600 rounded-full p-1">
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-  </div>
-);
-
-const InventoryItem = ({ record, onEdit, onDelete }: { record: StockRecord; onEdit: (r: StockRecord) => void; onDelete: (id?: string) => void }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-    <div className="flex justify-between items-start mb-2">
-      <h3 className="font-semibold text-gray-900">{record.fertilizerName}</h3>
-      <div className="text-right">
-        <span className="text-xs text-gray-500">{new Date(record.timestamp || Date.now()).toLocaleString('en-IN', {
-          day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        })}</span>
-        <div className="mt-2 flex gap-2">
-          <button onClick={() => onEdit(record)} className="text-indigo-600 text-sm font-medium hover:underline">Edit</button>
-          <button onClick={() => onDelete(record._id)} className="text-red-600 text-sm font-medium hover:underline">Delete</button>
-        </div>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-2 text-sm">
-      <div>
-        <span className="text-gray-600">Location:</span>
-        <span className="ml-2 font-medium">{record.stateLocation}</span>
-      </div>
-      <div>
-        <span className="text-gray-600">Quantity:</span>
-        <span className="ml-2 font-medium">{record.stockQuantity} MT</span>
-      </div>
-      <div>
-        <span className="text-gray-600">Unit Price:</span>
-        <span className="ml-2 font-medium">₹{Number(record.unitPrice).toLocaleString()}</span>
-      </div>
-      <div>
-        <span className="text-gray-600">Total Value:</span>
-        <span className="ml-2 font-medium text-green-600">₹{Number(record.totalValue).toLocaleString()}</span>
-      </div>
-    </div>
-  </div>
-);
-
-// -------------------- Main Component --------------------
-
-
-const API_BASE =  "http://localhost:5000/api/stocks";
-
-const RecordStockForm: React.FC = () => {
+const FertilizerStockManagement: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     fertilizerName: "",
     stateLocation: "Maharashtra",
@@ -95,24 +29,25 @@ const RecordStockForm: React.FC = () => {
   });
 
   const [currentInventory, setCurrentInventory] = useState<StockRecord[]>([]);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const states = [
-    "Maharashtra","Karnataka","Gujarat","Punjab","Tamil Nadu","Uttar Pradesh","Madhya Pradesh","Rajasthan"
+    "Maharashtra", "Karnataka", "Gujarat", "Punjab", "Tamil Nadu", 
+    "Uttar Pradesh", "Madhya Pradesh", "Rajasthan"
   ];
 
   useEffect(() => {
     fetchInventory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchInventory = async () => {
     try {
-      const res = await axios.get(API_BASE);
-      // server returns timestamp as Date; map to UI-friendly shape
-      setCurrentInventory(res.data.map((r: any) => ({
+      const res = await fetch(API_BASE);
+      const data = await res.json();
+      setCurrentInventory(data.map((r: any) => ({
         ...r,
         timestamp: r.timestamp
       })));
@@ -155,27 +90,31 @@ const RecordStockForm: React.FC = () => {
       };
 
       if (editId) {
-        // UPDATE
-        const res = await axios.put(`${API_BASE}/${editId}`, payload);
-        // update local list
-        setCurrentInventory(prev => prev.map(p => p._id === editId ? res.data : p));
-        setShowSuccess(true);
+        const res = await fetch(`${API_BASE}/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const updatedRecord = await res.json();
+        setCurrentInventory(prev => prev.map(p => p._id === editId ? updatedRecord : p));
         setEditId(null);
       } else {
-        // CREATE
-        const res = await axios.post(API_BASE, payload);
-        setCurrentInventory(prev => [res.data, ...prev]);
-        setShowSuccess(true);
+        const res = await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const newRecord = await res.json();
+        setCurrentInventory(prev => [newRecord, ...prev]);
       }
 
-      // reset
       setFormData({ fertilizerName: "", stateLocation: "Maharashtra", stockQuantity: "", unitPrice: "" });
+      setShowModal(false);
     } catch (err) {
       console.error("Submit error", err);
       alert("Unable to save record. Check console for details.");
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => setShowSuccess(false), 2500);
     }
   };
 
@@ -187,14 +126,14 @@ const RecordStockForm: React.FC = () => {
       stockQuantity: String(record.stockQuantity),
       unitPrice: String(record.unitPrice)
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setShowModal(true);
   };
 
   const handleDelete = async (id?: string) => {
     if (!id) return;
     if (!confirm("Delete this record?")) return;
     try {
-      await axios.delete(`${API_BASE}/${id}`);
+      await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
       setCurrentInventory(prev => prev.filter(p => p._id !== id));
     } catch (err) {
       console.error("Delete error", err);
@@ -202,98 +141,242 @@ const RecordStockForm: React.FC = () => {
     }
   };
 
+  const filteredInventory = currentInventory.filter(item =>
+    item.fertilizerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.stateLocation.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStockColor = (qty: number) => {
+    if (qty < 10) return "text-red-600";
+    if (qty < 50) return "text-orange-600";
+    return "text-green-600";
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {showSuccess && (
-          <SuccessMessage message={editId ? "Stock record updated!" : "Stock record added successfully!"} onClose={() => setShowSuccess(false)} />
-        )}
-
-        <div className="flex items-center gap-3 mb-8">
-          <div className="bg-indigo-600 text-white p-2 rounded-lg">
-            <PlusIcon />
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Fertilizer Stock ({currentInventory.length})
+            </h1>
+            <button
+              onClick={() => {
+                setEditId(null);
+                setFormData({ fertilizerName: "", stateLocation: "Maharashtra", stockQuantity: "", unitPrice: "" });
+                setShowModal(true);
+              }}
+              className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add New Stock
+            </button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{editId ? "Edit Stock" : "Record New Stock / Shipment"}</h1>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <div>
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Fertilizer Name</label>
-                <input type="text" name="fertilizerName" value={formData.fertilizerName} onChange={handleInputChange} placeholder="e.g., Urea (46% N)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
+          <div className="mb-6">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
 
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">State Location (Warehouse)</label>
-                <select name="stateLocation" value={formData.stateLocation} onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                  {states.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Quantity (MT)</label>
-                <input type="number" name="stockQuantity" value={formData.stockQuantity} onChange={handleInputChange} placeholder="e.g., 5000" step="0.01"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Unit Price (INR)</label>
-                <input type="number" name="unitPrice" value={formData.unitPrice} onChange={handleInputChange} placeholder="e.g., 300.50" step="0.01"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-
-              <div className="flex gap-3">
-                <button onClick={handleSubmit} disabled={isSubmitting}
-                  className="flex-1 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed">
-                  {isSubmitting ? "Recording..." : (editId ? "Update Stock" : "Record New Stock")}
-                </button>
-                {editId && (
-                  <button onClick={() => { setEditId(null); setFormData({ fertilizerName: "", stateLocation: "Maharashtra", stockQuantity: "", unitPrice: "" }); }}
-                    className="bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300">
-                    Cancel
-                  </button>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Fertilizer Name
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Unit Price
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Stock (MT)
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Total Value
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredInventory.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-gray-500">
+                      <div className="flex flex-col items-center">
+                        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        </svg>
+                        <p className="font-medium">No stock records found</p>
+                        <p className="text-sm">Add your first stock record to get started</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredInventory.map((record) => (
+                    <tr key={record._id || record.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-4 px-4">
+                        <div className="font-medium text-gray-900">{record.fertilizerName}</div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="inline-block px-3 py-1 text-sm bg-cyan-100 text-cyan-800 rounded-full">
+                          {record.stateLocation}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-900">
+                        ₹{Number(record.unitPrice).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`font-semibold ${getStockColor(record.stockQuantity)}`}>
+                          {record.stockQuantity}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-gray-900 font-medium">
+                        ₹{Number(record.totalValue).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEdit(record)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(record._id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Current Inventory
-              <span className="ml-2 text-sm font-normal text-gray-500">({currentInventory.length} records)</span>
-            </h2>
-
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {currentInventory.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                  </svg>
-                  <p className="font-medium">No records yet</p>
-                  <p className="text-sm">Add your first stock record to get started</p>
-                </div>
-              ) : (
-                currentInventory.map(record => (
-                  <InventoryItem key={record._id || record.id} record={record} onEdit={handleEdit} onDelete={handleDelete} />
-                ))
-              )}
-            </div>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fade-in 0.3s ease-out; }
-      `}</style>
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {editId ? "Edit Stock" : "Add New Stock"}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Fertilizer Name
+                </label>
+                <input
+                  type="text"
+                  name="fertilizerName"
+                  value={formData.fertilizerName}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Urea (46% N)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  State Location
+                </label>
+                <select
+                  name="stateLocation"
+                  value={formData.stateLocation}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                >
+                  {states.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Stock Quantity (MT)
+                </label>
+                <input
+                  type="number"
+                  name="stockQuantity"
+                  value={formData.stockQuantity}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 5000"
+                  step="0.01"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Unit Price (INR)
+                </label>
+                <input
+                  type="number"
+                  name="unitPrice"
+                  value={formData.unitPrice}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 300.50"
+                  step="0.01"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1 bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors disabled:bg-teal-400 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Saving..." : (editId ? "Update Stock" : "Add Stock")}
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-6 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default RecordStockForm;
+export default FertilizerStockManagement;
