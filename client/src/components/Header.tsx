@@ -9,7 +9,7 @@ export default function Header() {
     <div className="bg-white text-2xl flex justify-between h-20  p-5 border-b">
       {/* left */}
       <div className="flex space-x-3.5 ml-5">
-        <h3 className="font-bold">Products</h3>
+        <h3 className="font-bold"></h3>
       </div>
 
       <div className="flex space-x-4.5 text-center mr-10">

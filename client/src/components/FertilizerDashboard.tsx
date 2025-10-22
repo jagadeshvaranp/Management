@@ -209,7 +209,7 @@ const ProductList: React.FC<ProductListProps> = ({ title, items, isLowStock }) =
     <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
     <div>
       {items.map((item, idx) => (
-        <ListItem 
+         <ListItem 
           key={idx}
           rank={idx + 1}
           name={item.name}
