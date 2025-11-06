@@ -1,0 +1,56 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**' # Adjust if your backend is not in 'server' folder
+      - '.github/workflows/BE.yml'
+
+jobs:
+  deploy-backend:
+    runs-on: windows-latest
+    env:
+      # CHANGED: The final path for the backend application
+      WINDOWS_BACKEND_PATH: 'C:/inetpub/wwwroot/dev.imraninnovations/server' 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Copy backend files to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          source: "server/" 
+          # CHANGED: Target is the parent of the 'server' folder
+          target: "C:/inetpub/wwwroot/dev.imraninnovations" 
+          
+      - name: Install dependencies and Restart Service
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          script: |
+            # 1. Navigate to backend directory
+            cd ${{ env.WINDOWS_BACKEND_PATH }}
+            
+            # 2. Install dependencies (production only, no dev dependencies)
+            npm install --production
+            
+            # 3. Check if service exists before restarting
+            $serviceName = "MyNodeJsService" # Replace with your actual service name
+            $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+            
+            if ($service) {
+                Write-Host "Restarting service: $serviceName"
+                Restart-Service -Name $serviceName -ErrorAction Stop
+                Write-Host "Service restarted successfully"
+            } else {
+                Write-Warning "Service '$serviceName' not found. Please create the service or update the service name."
+                exit 1
+            }
