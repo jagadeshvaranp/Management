@@ -1,0 +1,81 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - '.github/workflows/FE.yml'
+
+jobs:
+  deploy-frontend:
+    runs-on: windows-latest
+    env:
+      # CHANGED: New deployment root folder
+      WINDOWS_DEPLOY_PATH: 'C:\inetpub\wwwroot\dev.imraninnovations' 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.18.1'
+          cache: 'npm'
+          cache-dependency-path: 'client/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd client
+          npm install
+          
+      - name: Build the project
+        run: |
+          cd client
+          npm run build 
+          
+      - name: Create deployment archive
+        # Creates client/frontend-dist.zip from the build output (assuming 'dist' folder)
+        run: |
+          Compress-Archive -Path 'client/dist/*' -DestinationPath 'client/frontend-dist.zip'
+        shell: pwsh
+          
+      - name: Copy deployment archive to Server
+        uses: appleboy/scp-action@v0.1.7 
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          source: "client/frontend-dist.zip"
+          # Zip is uploaded to C:\inetpub\wwwroot\dev.imraninnovations\frontend-dist.zip
+          target: "${{ env.WINDOWS_DEPLOY_PATH }}" 
+          
+      - name: Deploy Frontend and Restart IIS
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          script: |
+            $zipPath = "${{ env.WINDOWS_DEPLOY_PATH }}\frontend-dist.zip"
+            # CHANGED: The final web root path for the IIS site
+            $webRootPath = "${{ env.WINDOWS_DEPLOY_PATH }}\dist" 
+            
+            # Ensure the web root folder exists
+            if (-not (Test-Path -Path $webRootPath)) {
+                New-Item -ItemType Directory -Path $webRootPath
+            }
+            
+            # Remove existing files from the web root
+            Remove-Item -Path "$webRootPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+            # Extract the new frontend files directly into the 'dist' web root
+            Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
+            
+            # Clean up the zip file
+            Remove-Item -Path $zipPath -Force
+
+            # Restart IIS 
+            Restart-Service -Name W3SVC
