@@ -22,7 +22,7 @@ mongoose.connect(MONGO)
     process.exit(1);
   });
 
-// ---------    User Authentication --------- //
+// ---------    User Authentication    --------- //
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
