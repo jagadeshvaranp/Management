@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import Footer from "./Footer";
+// import Footer from "./Footer";
 import {
   LayoutDashboard,
   ChartNoAxesCombined,

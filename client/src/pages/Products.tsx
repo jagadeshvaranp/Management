@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 
 // ============================================
 // STEP 1: Define TypeScript Interfaces

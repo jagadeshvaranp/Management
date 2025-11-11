@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 export default function Invortry() {
   const [search, setSearch] = useState("");
   const [state, setState] = useState("All States");
