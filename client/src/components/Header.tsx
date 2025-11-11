@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
             J
           </button>
           <button onClick={handleLogout}>
-            <LogOut size={20} className="hover:text-red-500" />
+            <LogOut size={20}  className="hover:text-red-500" />
           </button>
         </div>
       </div>
