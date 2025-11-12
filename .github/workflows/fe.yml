@@ -55,11 +55,10 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           password: ${{ secrets.EC2_PASSWORD }}
-          # Use PowerShell to correctly interpret PowerShell syntax (e.g., $zipPath)
           shell: powershell
           script: |
-            $zipPath = "${{ env.WINDOWS_DEPLOY_PATH }}\\frontend-dist.zip"
-            $webRootPath = "${{ env.WINDOWS_DEPLOY_PATH }}\\dist"
+            $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
+            $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
             
             # Check if the destination 'dist' directory exists, and create it if not
             if (-not (Test-Path -Path $webRootPath)) {
