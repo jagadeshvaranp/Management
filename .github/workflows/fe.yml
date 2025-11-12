@@ -57,16 +57,22 @@ jobs:
           password: ${{ secrets.EC2_PASSWORD }}
           shell: powershell
           script: |
-            powershell -Command {
-                $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
-                $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
+            $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
+            $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
 
-                if (-not (Test-Path -Path $webRootPath)) {
-                    New-Item -ItemType Directory -Path $webRootPath
-                }
-
-                Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
-                Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
-                Remove-Item -Path $zipPath -Force
-                Restart-Service -Name W3SVC
+            # Check if the destination 'dist' directory exists, and create it if not
+            if (-not (Test-Path -Path $webRootPath)) {
+                New-Item -ItemType Directory -Path $webRootPath
             }
+
+            # Clear existing files in the web root, suppressing errors if directory is empty
+            Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+            # Unzip the deployment archive into the web root
+            Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
+
+            # Clean up the zip file
+            Remove-Item -Path $zipPath -Force
+
+            # Restart the IIS World Wide Web Publishing Service
+            Restart-Service -Name W3SVC
