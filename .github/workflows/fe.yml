@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'client/**'
-      - '.github/workflows/FE.yml' 
+      - '.github/workflows/FE.yml'
 
 jobs:
   deploy-frontend:
@@ -39,7 +39,7 @@ jobs:
         run: |
           cd client
           zip -r frontend-dist.zip dist/
-          
+
       - name: Copy deployment archive to Server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -55,15 +55,25 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           password: ${{ secrets.EC2_PASSWORD }}
+          # Use PowerShell to correctly interpret PowerShell syntax (e.g., $zipPath)
+          shell: powershell
           script: |
             $zipPath = "${{ env.WINDOWS_DEPLOY_PATH }}\\frontend-dist.zip"
             $webRootPath = "${{ env.WINDOWS_DEPLOY_PATH }}\\dist"
             
+            # Check if the destination 'dist' directory exists, and create it if not
             if (-not (Test-Path -Path $webRootPath)) {
                 New-Item -ItemType Directory -Path $webRootPath
             }
-
+            
+            # Clear existing files in the web root, suppressing errors if directory is empty
             Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
+            
+            # Unzip the deployment archive into the web root
             Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
+            
+            # Clean up the zip file
             Remove-Item -Path $zipPath -Force
+            
+            # Restart the IIS World Wide Web Publishing Service
             Restart-Service -Name W3SVC
