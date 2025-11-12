@@ -37,8 +37,8 @@ jobs:
 
       - name: Create deployment archive
         run: |
-          cd client
-          zip -r frontend-dist.zip dist/
+          cd client/dist
+          zip -r ../frontend-dist.zip .  # Zip the contents of dist, not the dist folder itself.
 
       - name: Copy deployment archive to Server under dist folder
         uses: appleboy/scp-action@v0.1.7
@@ -46,7 +46,7 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           password: ${{ secrets.EC2_PASSWORD }}
-          source: "client/frontend-dist.zip"
+          source: "client/frontend-dist.zip"  # Now from the root of client/
           target: "${{ env.WINDOWS_DEPLOY_PATH }}\\dist\\frontend-dist.zip"
 
       - name: Deploy Frontend and Restart IIS
@@ -58,12 +58,24 @@ jobs:
           shell: powershell
           script: |
             powershell.exe -Command "
-                # Set paths for zip and extraction
+                # Define the paths
                 $zipPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist\\frontend-dist.zip'
                 $webRootPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist'
 
-                # Check if the zip file exists
+                # Check if the 'frontend-dist.zip' exists in the dist folder
                 if (Test-Path -Path $zipPath) {
+                    # Extract the zip contents directly into the dist folder
                     Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force;
+                    # Remove the zip file after extraction
                     Remove-Item -Path $zipPath -Force;
                 }
+
+                # Check for and delete files listed in 'deleted_files.txt'
+                $deletedFilesPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\deleted_files.txt'
+                if (Test-Path -Path $deletedFilesPath) {
+                    $files = Get-Content -Path $deletedFilesPath;
+                    foreach ($file in $files) {
+                        Remove-Item -Path (Join-Path -Path $webRootPath -ChildPath $file) -Force;
+                    }
+                    Remove-Item -Path $deletedFilesPath -Force;
+                }"
