@@ -35,10 +35,11 @@ jobs:
           cd client
           npm run build
 
-      - name: Create deployment archive (corrected path)
+      - name: Create deployment archive
         run: |
           cd client/dist
-          zip -r ../frontend-dist.zip .  # Zip the contents of dist, not the dist folder itself.
+          # Now zip only the contents of dist (not the dist folder itself)
+          zip -r ../frontend-dist.zip *  # Use '*' to zip contents without including 'dist/'
 
       - name: Copy deployment archive to Server under dist folder
         uses: appleboy/scp-action@v0.1.7
