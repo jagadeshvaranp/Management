@@ -57,7 +57,7 @@ jobs:
           password: ${{ secrets.EC2_PASSWORD }}
           shell: powershell
           script: |
-            # Full paths for zip and web root
+            # Ensure PowerShell script is executed
             $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
             $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
 
