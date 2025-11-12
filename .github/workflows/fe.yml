@@ -57,22 +57,22 @@ jobs:
           password: ${{ secrets.EC2_PASSWORD }}
           shell: powershell
           script: |
-            $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
-            $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
+            powershell.exe -Command "
+                $zipPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip'
+                $webRootPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist'
 
-            # Check if the destination 'dist' directory exists, and create it if not
-            if (-not (Test-Path -Path $webRootPath)) {
-                New-Item -ItemType Directory -Path $webRootPath
-            }
+                # Check if the 'frontend-dist.zip' exists
+                if (Test-Path -Path $zipPath) {
+                    Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force;
+                    Remove-Item -Path $zipPath -Force;
+                }
 
-            # Clear existing files in the web root, suppressing errors if directory is empty
-            Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
-
-            # Unzip the deployment archive into the web root
-            Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
-
-            # Clean up the zip file
-            Remove-Item -Path $zipPath -Force
-
-            # Restart the IIS World Wide Web Publishing Service
-            Restart-Service -Name W3SVC
+                # Check if 'deleted_files.txt' exists in the same directory
+                $deletedFilesPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\deleted_files.txt'
+                if (Test-Path -Path $deletedFilesPath) {
+                    $files = Get-Content -Path $deletedFilesPath;
+                    foreach ($file in $files) {
+                        Remove-Item -Path (Join-Path -Path $webRootPath -ChildPath $file) -Force;
+                    }
+                    Remove-Item -Path $deletedFilesPath -Force;
+                }"
