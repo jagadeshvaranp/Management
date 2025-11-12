@@ -40,14 +40,14 @@ jobs:
           cd client
           zip -r frontend-dist.zip dist/
 
-      - name: Copy deployment archive to Server
+      - name: Copy deployment archive to Server under dist folder
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USERNAME }}
           password: ${{ secrets.EC2_PASSWORD }}
           source: "client/frontend-dist.zip"
-          target: "${{ env.WINDOWS_DEPLOY_PATH }}"
+          target: "${{ env.WINDOWS_DEPLOY_PATH }}\\dist\\frontend-dist.zip"
 
       - name: Deploy Frontend and Restart IIS
         uses: appleboy/ssh-action@v0.1.4
@@ -58,21 +58,12 @@ jobs:
           shell: powershell
           script: |
             powershell.exe -Command "
-                $zipPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip'
+                # Set paths for zip and extraction
+                $zipPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist\\frontend-dist.zip'
                 $webRootPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist'
 
-                # Check if the 'frontend-dist.zip' exists
+                # Check if the zip file exists
                 if (Test-Path -Path $zipPath) {
                     Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force;
                     Remove-Item -Path $zipPath -Force;
                 }
-
-                # Check if 'deleted_files.txt' exists in the same directory
-                $deletedFilesPath = 'C:\\inetpub\\wwwroot\\dev.imraninnovations\\deleted_files.txt'
-                if (Test-Path -Path $deletedFilesPath) {
-                    $files = Get-Content -Path $deletedFilesPath;
-                    foreach ($file in $files) {
-                        Remove-Item -Path (Join-Path -Path $webRootPath -ChildPath $file) -Force;
-                    }
-                    Remove-Item -Path $deletedFilesPath -Force;
-                }"
