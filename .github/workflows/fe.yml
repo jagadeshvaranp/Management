@@ -57,17 +57,16 @@ jobs:
           password: ${{ secrets.EC2_PASSWORD }}
           shell: powershell
           script: |
-            $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
-            $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
+            powershell -Command {
+                $zipPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\frontend-dist.zip"
+                $webRootPath = "C:\\inetpub\\wwwroot\\dev.imraninnovations\\dist"
 
-            if (-not (Test-Path -Path $webRootPath)) {
-                New-Item -ItemType Directory -Path $webRootPath
+                if (-not (Test-Path -Path $webRootPath)) {
+                    New-Item -ItemType Directory -Path $webRootPath
+                }
+
+                Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
+                Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
+                Remove-Item -Path $zipPath -Force
+                Restart-Service -Name W3SVC
             }
-
-            Remove-Item -Path "$webRootPath\\*" -Recurse -Force -ErrorAction SilentlyContinue
-
-            Expand-Archive -Path $zipPath -DestinationPath $webRootPath -Force
-
-            Remove-Item -Path $zipPath -Force
-
-            Restart-Service -Name W3SVC
