@@ -35,7 +35,7 @@ jobs:
           cd client
           npm run build
 
-      - name: Create deployment archive
+      - name: Create deployment archive (corrected path)
         run: |
           cd client/dist
           zip -r ../frontend-dist.zip .  # Zip the contents of dist, not the dist folder itself.
