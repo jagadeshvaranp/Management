@@ -10,7 +10,7 @@ on:
 
 jobs:
   backend-deployment:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -28,17 +28,16 @@ jobs:
         run: npm ci
 
       - name: Prepare deployment files
-        shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path api-backend -Force | Out-Null
-          Copy-Item server/package.json package.json
-          Copy-Item server/package-lock.json package-lock.json
-          Get-ChildItem server -Exclude node_modules | Copy-Item -Destination api-backend -Recurse -Force
+          mkdir -p api-backend
+          cp server/package.json package.json
+          cp server/package-lock.json package-lock.json
+          cp -r server/* api-backend/ 2>/dev/null || true
+          rm -rf api-backend/node_modules
 
       - name: Create backend deployment archive
-        shell: pwsh
         run: |
-          Compress-Archive -Path api-backend\* -DestinationPath api-backend.zip -Force
+          cd api-backend && zip -r ../api-backend.zip . && cd ..
 
       - name: Copy deployment artifacts to server
         uses: appleboy/scp-action@v1

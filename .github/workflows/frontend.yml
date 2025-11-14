@@ -10,7 +10,7 @@ on:
 
 jobs:
   frontend-deployment:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -34,9 +34,8 @@ jobs:
         run: npm run build
 
       - name: Create frontend deployment archive
-        shell: pwsh
         run: |
-          Compress-Archive -Path client\dist\* -DestinationPath api-frontend.zip -Force
+          cd client/dist && zip -r ../../api-frontend.zip . && cd ../..
 
       - name: Copy deployment artifacts to server
         uses: appleboy/scp-action@v1
