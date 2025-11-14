@@ -33,6 +33,17 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'http://localhost:5000' }}
         run: npm run build
 
+      - name: Verify web.config is included
+        run: |
+          if [ ! -f "client/dist/web.config" ]; then
+            echo "❌ Error: web.config not found in dist folder!"
+            echo "Files in dist:"
+            ls -la client/dist/
+            exit 1
+          else
+            echo "✅ web.config found in dist folder"
+          fi
+
       - name: Create frontend deployment archive
         run: |
           cd client/dist && zip -r ../../api-frontend.zip . && cd ../..

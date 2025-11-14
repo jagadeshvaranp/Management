@@ -18,7 +18,7 @@ interface FormData {
   unitPrice: string;
 }
 
-const API_BASE = "http://localhost:5000/api/stocks";
+const API_BASE = "/api/stocks";
 
 const FertilizerStockManagement: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
