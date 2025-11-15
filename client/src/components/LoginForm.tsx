@@ -20,8 +20,8 @@ const LoginForm: React.FC<Props> = ({ onLogin, switchToRegister }) => {
       
          <div className="text-center ">
         <h1 className="text-2xl font-bold mb-4">
-          <span className="text-cyan-600 text-3xl">Inventory</span>
-          <span className="text-gray-800 text-3xl ">Pro</span>
+          <span className="text-cyan-600 text-3xl">Inventory  </span>
+          <span className="text-gray-800 text-3xl ">Pro max</span>
         </h1>
         </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
