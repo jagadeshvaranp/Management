@@ -1,44 +1,4 @@
-// import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// import Sidebar from "../components/Sidebar";
-// import Products from "../pages/Products";
-// import Invortry from "../pages/Invortry";
-// import Header from "../components/Header";
-// import Dashboard from "../pages/Dashboard";
-// import Addnew from "../pages/Addnew";
-// import Login from "../pages/Login";
-// import Register from "../pages/Register";
-
-// function MainLayout() {
-//   return (
-
-//     <BrowserRouter>
-     
-//       <div className="flex min-h-screen bg-gray-100">
-//         <Sidebar />
-
-//         <main className="flex-1  w-full md:w-4/5">
-//          <Header />
-//           <Routes>
-//              <Route path="/Dashboard" element={< Dashboard/>}></Route>
-//             <Route path="/" element={<Navigate to="/products" />} />
-            
-//             <Route path="/products" element={<Products />} />
-//             <Route path="/Invortry" element={<Invortry />} />
-//             <Route path="/Addnew" element={<Addnew />} />
-           
-//           </Routes>
-//         </main>
-//       </div>
-      
-//     </BrowserRouter>
-//   );
-// }
-// export default MainLayout;
-
-
-
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
@@ -57,7 +17,13 @@ const MainLayout: React.FC = () => {
   const [showRegister, setShowRegister] = useState(false);
   const [notification, setNotification] = useState("");
 
-  // Handle login
+  // 🔥 Load login status from localStorage on refresh
+  useEffect(() => {
+    const user = localStorage.getItem("loggedInUser");
+    if (user) setLoggedIn(true);
+  }, []);
+
+  // 🔥 Save login when successful
   const handleLogin = async (username: string, password: string) => {
     try {
       const res = await fetch("/api/login", {
@@ -65,13 +31,17 @@ const MainLayout: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+
       const data = await res.json();
+
       if (data.message === "Login successful!") {
+        localStorage.setItem("loggedInUser", username); // SAVE login
         setLoggedIn(true);
         setNotification("");
       } else {
         setNotification(data.error || "Login failed");
       }
+
       if (data.error === "User not found") {
         setNotification("User not registered! Please register first.");
         setShowRegister(true);
@@ -81,7 +51,7 @@ const MainLayout: React.FC = () => {
     }
   };
 
-  // Handle registration
+  // Register
   const handleRegister = async (username: string, password: string) => {
     try {
       const res = await fetch("/api/register", {
@@ -89,7 +59,9 @@ const MainLayout: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+
       const data = await res.json();
+
       if (res.status === 201) {
         setNotification("Registration successful! Please login now.");
         setShowRegister(false);
@@ -101,19 +73,25 @@ const MainLayout: React.FC = () => {
     }
   };
 
-  // Logout
-  const handleLogout = () => setLoggedIn(false);
+  // Logout → clear localStorage
+  const handleLogout = () => {
+    localStorage.removeItem("loggedInUser");
+    setLoggedIn(false);
+  };
 
   return (
     <BrowserRouter>
       {!loggedIn ? (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
           {notification && (
-            <div className="mb-4 p-3 bg-yellow-200 text-yellow-800 rounded">{notification}</div>
+            <div className="mb-4 p-3 bg-yellow-200 text-yellow-800 rounded">
+              {notification}
+            </div>
           )}
 
           {!showRegister ? (
-            <LoginForm onLogin={handleLogin} switchToRegister={() => setShowRegister(true)} />
+         
+            <LoginForm  onLogin={handleLogin} switchToRegister={() => setShowRegister(true)} />
           ) : (
             <RegisterForm onRegister={handleRegister} switchToLogin={() => setShowRegister(false)} />
           )}
@@ -123,6 +101,7 @@ const MainLayout: React.FC = () => {
           <Sidebar />
           <main className="flex-1 w-full md:w-4/5">
             <Header handleLogout={handleLogout} />
+
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<Dashboard />} />
