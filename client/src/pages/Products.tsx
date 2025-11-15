@@ -82,7 +82,7 @@ const stateDataMap: Record<string, StateData> = {
 };
 
 // ============================================
-// STEP 3: Icon Components
+// STEP 3: Icon Com   ponents
 // ============================================
 const TrendDownIcon = () => (
   <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@ const StateAnalyticsDashboard = () => {
         {/* State Selector Card */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <label className="block text-sm font-semibold text-gray-700 mb-3">
-            Select State for Detailed View:
+            Select State for Detailed View to :
           </label>
           <select
             value={selectedState}
