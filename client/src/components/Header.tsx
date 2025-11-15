@@ -1,6 +1,5 @@
-
-
 import React from "react";
+import { useLocation } from "react-router-dom";
 import { LogOut, Search } from "lucide-react";
 
 interface HeaderProps {
@@ -8,11 +7,24 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
+  const location = useLocation();
+
+  // Map paths to titles
+  const titles: Record<string, string> = {
+    "/dashboard": "Dashboard",
+    "/addnew": "Add New Product",
+    "/categories": "Categories",
+    "/products": "Static Analytics",
+    "/invortry": "Inventory",
+  };
+
+  const title = titles[location.pathname.toLowerCase()] || "Stock Management";
+
   return (
-    <div className="bg-white text-2xl flex justify-between h-20 p-5 border-b items-center">
+    <div className="bg-white dark:bg-gray-900 text-black dark:text-white flex justify-between h-20 p-5 border-b dark:border-gray-700 items-center">
       {/* Left section */}
       <div className="flex space-x-3.5 ml-5 items-center">
-        <h3 className="font-bold text-xl">Stock Management</h3>
+        <h3 className="font-bold text-xl">{title}</h3>
       </div>
 
       {/* Right section */}
@@ -22,21 +34,20 @@ const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
           <input
             type="text"
             placeholder="Search inventory, orders..."
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg 
-              focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-xs"
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-xs dark:placeholder-gray-400"
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-300">
             <Search size={16} />
           </div>
         </div>
 
         {/* User / Logout */}
-        <div className="flex items-center space-x-2 hover:bg-gray-300 rounded-3xl p-1">
-          <button className="w-8 h-8 border rounded-3xl bg-gray-100 text-black flex items-center justify-center">
+        <div className="flex items-center space-x-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-3xl p-1">
+          <button className="w-8 h-8 border rounded-3xl bg-gray-100 dark:bg-gray-800 dark:border-gray-600 text-black dark:text-white flex items-center justify-center">
             J
           </button>
           <button onClick={handleLogout}>
-            <LogOut size={20}  className="hover:text-red-500" />
+            <LogOut size={20} className="hover:text-red-500 dark:hover:text-red-400" />
           </button>
         </div>
       </div>

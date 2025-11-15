@@ -1,305 +1,335 @@
-import React, { useEffect, useRef } from 'react';
-import { Chart, CategoryScale, LinearScale, LineController, PointElement, LineElement, Tooltip } from 'chart.js';
+import React, { useEffect, useRef } from "react";
+import { motion, Variants } from "framer-motion";
+import {
+  Chart,
+  CategoryScale,
+  LinearScale,
+  LineController,
+  PointElement,
+  LineElement,
+  Tooltip,
+} from "chart.js";
 
-Chart.register(CategoryScale, LinearScale, LineController, PointElement, LineElement, Tooltip);
-
-// ============================================
-// TYPES
-// ============================================
-interface StatsCardProps {
-  title: string;
-  value: string;
-  change: string;
-  icon: React.ReactNode;
-}
-
-interface ListItemProps {
-  rank: number;
-  name: string;
-  value: string;
-  isLowStock: boolean;
-}
-
-interface ProductItem {
-  name: string;
-  value: string;
-}
-
-interface ProductListProps {
-  title: string;
-  items: ProductItem[];
-  isLowStock: boolean;
-}
-
-// ============================================
-// ICONS COMPONENTS
-// ============================================
-const InventoryIcon = () => (
-  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
+Chart.register(
+  CategoryScale,
+  LinearScale,
+  LineController,
+  PointElement,
+  LineElement,
+  Tooltip
 );
 
-const AlertIcon = () => (
-  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round"   strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-  </svg>
+// ---------------------------
+// Animation variants
+// ---------------------------
+const pageFade: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.8 } },
+};
+
+const containerStats: Variants = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const itemFadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
+
+const chartTitle: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const chartCanvasAnim: Variants = {
+  hidden: { opacity: 0, scale: 0.96 },
+  show: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut" } },
+};
+
+const listContainer = (delay: number = 0): Variants => ({
+
+
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: delay,
+    },
+  },
+});
+
+// ---------------------------
+// Reusable Card (animated wrapper)
+// ---------------------------
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = "",
+}) => (
+  <motion.div
+    variants={itemFadeUp}
+    initial="hidden"
+    animate="show"
+    className={`backdrop-blur bg-white/70 shadow-lg rounded-2xl p-6 border border-gray-200 ${className}`}
+  >
+    {children}
+  </motion.div>
 );
 
-const ProductsIcon = () => (
-  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-  </svg>
-);
+// ---------------------------
+// Stats Card
+// ---------------------------
+const StatsCard: React.FC<{ title: string; value: string; change: string; icon: React.ReactNode }> = ({
+  title,
+  value,
+  change,
+  icon,
+}) => {
+  const isPositive = change.includes("+");
+  const isNegative = change.includes("-") || change.includes("No change");
 
-const DeficitIcon = () => (
-  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-  </svg>
-);
-
-// ============================================
-// STATS CARD COMPONENT
-// ============================================
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon }) => {
-  const isPositive = change.includes('+');
-  const isNegative = change.includes('-') || change.includes('No change');
-  
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-start mb-2">
-        <p className="text-sm text-gray-600">{title}</p>
-        <div className={`p-2 rounded-lg ${
-          isPositive ? 'bg-green-100' : isNegative ? 'bg-red-100' : 'bg-gray-100'
-        }`}>
-          {icon}
+    <motion.div whileHover={{ scale: 1.03 }} transition={{ duration: 0.2 }}>
+      <Card>
+        <div className="flex justify-between mb-3">
+          <p className="text-sm text-gray-600">{title}</p>
+          <div
+            className={`p-2 rounded-xl ${
+              isPositive ? "bg-green-100" : isNegative ? "bg-red-100" : "bg-gray-100"
+            }`}
+          >
+            {icon}
+          </div>
         </div>
-      </div>
-      <h3 className="text-2xl font-bold mb-2">{value}</h3>
-      <p className={`text-sm flex items-center gap-1 ${
-        isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-gray-600'
-      }`}>
-        <span>{isPositive ? '↗' : isNegative ? '↘' : '→'}</span>
-        {change}
-      </p>
-    </div>
+
+        <h3 className="text-3xl font-bold">{value}</h3>
+
+        <p className={`mt-2 text-sm flex items-center gap-1 ${isPositive ? "text-green-600" : isNegative ? "text-red-600" : ""}`}>
+          {isPositive ? "↗" : isNegative ? "↘" : "→"} {change}
+        </p>
+      </Card>
+    </motion.div>
   );
 };
 
-// ============================================
-// LIST ITEM COMPONENT
-// ============================================
-const ListItem: React.FC<ListItemProps> = ({ rank, name, value, isLowStock }) => (
-  <div className="flex justify-between items-center py-3 border-b last:border-b-0">
-    <div className="flex items-center gap-3">
-      <span className="text-gray-500 font-medium">{rank}.</span>
-      <span className="text-gray-800">{name}</span>
-    </div>
-    <span className={`font-semibold ${isLowStock ? 'text-red-600' : 'text-green-600'}`}>
-      {value}
-    </span>
-  </div>
+// ---------------------------
+// List Item (animated)
+// ---------------------------
+const ListItem: React.FC<{ rank: number; name: string; value: string; isLowStock?: boolean }> = ({
+  rank,
+  name,
+  value,
+  isLowStock = false,
+}) => (
+  <motion.div variants={itemFadeUp} className="flex justify-between items-center py-3 border-b last:border-none">
+    <span className="font-medium text-gray-700">{rank}. {name}</span>
+    <span className={`${isLowStock ? "text-red-600" : "text-green-600"} font-semibold`}>{value}</span>
+  </motion.div>
 );
 
-// ============================================
-// FORECAST CHART COMPONENT
-// ============================================
+// ---------------------------
+// Product List (animated container + items)
+// ---------------------------
+const ProductList: React.FC<{ title: string; items: { name: string; value: string }[]; isLowStock?: boolean; delay?: number }> = ({
+  title,
+  items,
+  isLowStock = false,
+  delay = 0,
+}) => (
+  <motion.div variants={itemFadeUp} initial="hidden" animate="show">
+    <motion.div variants={itemFadeUp} className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all duration-300">
+      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+
+      <motion.div variants={listContainer(delay)} initial="hidden" animate="show">
+        {items.map((it, idx) => (
+          <ListItem
+            key={idx}
+            rank={idx + 1}
+            name={it.name}
+            value={it.value}
+            isLowStock={isLowStock}
+          />
+        ))}
+      </motion.div>
+    </motion.div>
+  </motion.div>
+);
+
+// ---------------------------
+// Forecast Chart (chart.js) with small entrance animation wrapper
+// ---------------------------
 const ForecastChart: React.FC = () => {
-  const chartRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
 
   useEffect(() => {
-    if (chartRef.current) {
-      const ctx = chartRef.current.getContext('2d');
-      if (ctx) {
-        if (chartInstance.current) {
-          chartInstance.current.destroy();
-        }
+    const ctx = chartRef.current?.getContext("2d");
+    if (!ctx) return;
 
-        chartInstance.current = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [
-              {
-                label: 'Availability',
-                data: [1200, 1400, 1250, 1500, 1800, 2100, 2300, 2100, 2000, 1800, 1500, 1300],
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-              },
-              {
-                label: 'Requirement',
-                data: [1300, 1500, 1300, 1600, 1900, 2000, 1900, 1800, 1700, 1500, 1300, 1250],
-                borderColor: '#ef4444',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-              }
-            ]
+    if (chartInstance.current) chartInstance.current.destroy();
+
+    chartInstance.current = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [
+          "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"
+        ],
+        datasets: [
+          {
+            label: "Availability",
+            data: [1200,1400,1250,1500,1800,2100,2300,2100,2000,1800,1500,1300],
+            borderColor: "#10b981",
+            backgroundColor: "rgba(16,185,129,0.18)",
+            tension: 0.36,
+            fill: true,
+            pointRadius: 2,
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: { mode: 'index', intersect: false }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 2400,
-                ticks: { stepSize: 600 },
-                grid: { color: 'rgba(0, 0, 0, 0.05)' }
-              },
-              x: { grid: { display: false } }
-            },
-            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+          {
+            label: "Requirement",
+            data: [1300,1500,1300,1600,1900,2000,1900,1800,1700,1500,1300,1250],
+            borderColor: "#ef4444",
+            backgroundColor: "rgba(239,68,68,0.16)",
+            tension: 0.36,
+            fill: true,
+            pointRadius: 2,
           }
-        });
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: "rgba(0,0,0,0.05)" } },
+          x: { grid: { display: false } },
+        },
       }
-    }
+    });
 
-    return () => {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-    };
+    return () => { chartInstance.current?.destroy(); };
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Urea Availability vs. Requirement (Annual Forecast)
-        </h2>
-        <select className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option>Urea (46% N)</option>
-          <option>MOP</option>
-          <option>DAP</option>
-        </select>
-      </div>
-      <div className="h-80">
-        <canvas ref={chartRef}></canvas>
-      </div>
-      <div className="flex justify-center gap-8 mt-4">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-green-500 rounded"></div>
-          <span className="text-sm text-gray-600">Availability</span>
+    <motion.div variants={itemFadeUp} initial="hidden" animate="show">
+      <div className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all duration-300">
+        <motion.div variants={chartTitle} className="flex justify-between mb-4">
+          <h2 className="text-lg font-semibold">Urea Availability vs Requirement — Annual</h2>
+          <select className="px-3 py-2 border rounded-lg text-sm shadow-sm">
+            <option>Urea (46% N)</option>
+            <option>MOP</option>
+            <option>DAP</option>
+          </select>
+        </motion.div>
+
+        <motion.div variants={chartCanvasAnim} initial="hidden" animate="show" className="h-80">
+          <canvas ref={chartRef}></canvas>
+        </motion.div>
+
+        <div className="flex justify-center gap-8 mt-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-4 h-4 bg-green-500 rounded"></div>
+            Availability
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-4 h-4 bg-red-500 rounded"></div>
+            Requirement
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-500 rounded"></div>
-          <span className="text-sm text-gray-600">Requirement</span>
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-// ============================================
-// PRODUCT LIST COMPONENT
-// ============================================
-const ProductList: React.FC<ProductListProps> = ({ title, items, isLowStock }) => (
-  <div className="bg-white rounded-lg shadow p-6">
-    <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
-    <div>
-      {items.map((item, idx) => (
-         <ListItem 
-          key={idx}
-          rank={idx + 1}
-          name={item.name}
-          value={item.value}
-          isLowStock={isLowStock}
-        />
-      ))}
-    </div>
-  </div>
-);
-
-// ============================================
-// DATA
-// ============================================
-const topDemandProducts: ProductItem[] = [
-  { name: 'MOP (Muriate of Potash)', value: '18,000 MT' },
-  { name: 'Urea (46% N)', value: '15,000 MT' },
-  { name: 'DAP (18-46-0)', value: '12,000 MT' },
-  { name: 'NPK 20:20:0', value: '10,000 MT' },
-  { name: 'NPK 10:26:26', value: '8,500 MT' },
+// ---------------------------
+// Data (mock)
+// ---------------------------
+const topDemandProducts = [
+  { name: "MOP (Muriate of Potash)", value: "18,000 MT" },
+  { name: "Urea (46% N)", value: "15,000 MT" },
+  { name: "DAP (18-46-0)", value: "12,000 MT" },
+  { name: "NPK 20:20:0", value: "10,000 MT" },
+  { name: "NPK 10:26:26", value: "8,500 MT" },
 ];
 
-const lowStockProducts: ProductItem[] = [
-  { name: 'Calcium Nitrate', value: '2,500 MT' },
-  { name: 'Zinc Sulphate', value: '3,000 MT' },
-  { name: 'Gypsum', value: '4,000 MT' },
-  { name: 'SSP (Single Superphosphate)', value: '5,500 MT' },
-  { name: 'Ammonium Sulphate', value: '6,500 MT' },
+const lowStockProducts = [
+  { name: "Calcium Nitrate", value: "2,500 MT" },
+  { name: "Zinc Sulphate", value: "3,000 MT" },
+  { name: "Gypsum", value: "4,000 MT" },
+  { name: "SSP (Single Superphosphate)", value: "5,500 MT" },
+  { name: "Ammonium Sulphate", value: "6,500 MT" },
 ];
 
-// ============================================
-// MAIN DASHBOARD
-// ============================================
+// ---------------------------
+// Main component (stagger order)
+// ---------------------------
 const FertilizerDashboard: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <motion.div
+      variants={pageFade}
+      initial="hidden"
+      animate="show"
+      className="min-h-screen bg-gradient-to-tr from-gray-100 to-gray-200 p-6"
+    >
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+        {/* Page title */}
+        <motion.h1 variants={itemFadeUp} className="text-3xl font-bold mb-8">
           Fertilizer Inventory Dashboard
-        </h1>
-        
-        {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard 
-            title="Total Inventory Value" 
-            value="₹28,850,000" 
-            change="+4.5% vs. last month"
-            icon={<InventoryIcon />}
-          />
-          <StatsCard 
-            title="Critical Stock Items" 
-            value="1" 
-            change="-25% vs. last month"
-            icon={<AlertIcon />}
-          />
-          <StatsCard 
-            title="Total Products" 
-            value="10" 
-            change="+1.2% vs. last month"
-            icon={<ProductsIcon />}
-          />
-          <StatsCard 
-            title="Supply Deficit Items" 
-            value="4" 
-            change="No change vs. last month"
-            icon={<DeficitIcon />}
-          />
-        </div>
+        </motion.h1>
 
-        {/* Chart and Lists Section */}
+        {/* Stage 2: Stats cards (staggered) */}
+        <motion.div variants={containerStats} initial="hidden" animate="show" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Order enforced by declaration order below */}
+          <StatsCard
+            title="Total Inventory Value"
+            value="₹28,850,000"
+            change="+4.5% vs last month"
+            icon={<svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>}
+          />
+          <StatsCard
+            title="Critical Stock Items"
+            value="1"
+            change="-25% vs last month"
+            icon={<svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M4.938 20h14.124c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 17c-.77 1.333.192 3 1.732 3z" /></svg>}
+          />
+          <StatsCard
+            title="Total Products"
+            value="10"
+            change="+1.2% vs last month"
+            icon={<svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>}
+          />
+          <StatsCard
+            title="Supply Deficit Items"
+            value="4"
+            change="No change vs last month"
+            icon={<svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" /></svg>}
+          />
+        </motion.div>
+
+        {/* Stage 3 + 4: Chart + Lists */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+          {/* Chart area (title -> canvas) */}
+          <motion.div variants={itemFadeUp} initial="hidden" animate="show" className="lg:col-span-2">
             <ForecastChart />
-          </div>
+          </motion.div>
 
+          {/* Product lists: each list has its own stagger (delay set so chart animates first) */}
           <div className="space-y-6">
-            <ProductList 
-              title="Top 5 Most Required (Demand)"
-              items={topDemandProducts}
-              isLowStock={false}
-            />
-            <ProductList 
-              title="Top 5 Least Available (Low Stock)"
-              items={lowStockProducts}
-              isLowStock={true}
-            />
+            <motion.div initial="hidden" animate="show" variants={listContainer(0.2)}>
+              <ProductList title="Top 5 Most Required (Demand)" items={topDemandProducts} isLowStock={false} delay={0.2} />
+            </motion.div>
+
+            <motion.div initial="hidden" animate="show" variants={listContainer(0.2)}>
+              <ProductList title="Top 5 Least Available (Low Stock)" items={lowStockProducts} isLowStock={true} delay={0.2} />
+            </motion.div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -11,22 +11,26 @@ import Addnew from "../pages/Addnew";
 
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
+import Categories from "../pages/Categories";
 
 const MainLayout: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [notification, setNotification] = useState("");
 
-  // 🔥 Load login status from localStorage on refresh
+  // Backend URL
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Load login status from localStorage
   useEffect(() => {
     const user = localStorage.getItem("loggedInUser");
     if (user) setLoggedIn(true);
   }, []);
 
-  // 🔥 Save login when successful
+  // Handle login
   const handleLogin = async (username: string, password: string) => {
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -34,27 +38,26 @@ const MainLayout: React.FC = () => {
 
       const data = await res.json();
 
-      if (data.message === "Login successful!") {
-        localStorage.setItem("loggedInUser", username); // SAVE login
+      if (res.ok) {
+        localStorage.setItem("loggedInUser", username);
         setLoggedIn(true);
         setNotification("");
       } else {
         setNotification(data.error || "Login failed");
-      }
-
-      if (data.error === "User not found") {
-        setNotification("User not registered! Please register first.");
-        setShowRegister(true);
+        if (data.error === "User not found") {
+          setShowRegister(true);
+        }
       }
     } catch (err) {
+      console.error(err);
       setNotification("Server error. Try again later.");
     }
   };
 
-  // Register
+  // Handle registration
   const handleRegister = async (username: string, password: string) => {
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -69,11 +72,12 @@ const MainLayout: React.FC = () => {
         setNotification(data.error || "Registration failed");
       }
     } catch (err) {
+      console.error(err);
       setNotification("Server error. Try again later.");
     }
   };
 
-  // Logout → clear localStorage
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     setLoggedIn(false);
@@ -90,10 +94,15 @@ const MainLayout: React.FC = () => {
           )}
 
           {!showRegister ? (
-         
-            <LoginForm  onLogin={handleLogin} switchToRegister={() => setShowRegister(true)} />
+            <LoginForm
+              onLogin={handleLogin}
+              switchToRegister={() => setShowRegister(true)}
+            />
           ) : (
-            <RegisterForm onRegister={handleRegister} switchToLogin={() => setShowRegister(false)} />
+            <RegisterForm
+              onRegister={handleRegister}
+              switchToLogin={() => setShowRegister(false)}
+            />
           )}
         </div>
       ) : (
@@ -106,6 +115,7 @@ const MainLayout: React.FC = () => {
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/products" element={<Products />} />
+              <Route path="/categories" element={<Categories />} />
               <Route path="/invortry" element={<Invortry />} />
               <Route path="/addnew" element={<Addnew />} />
               <Route path="*" element={<Navigate to="/" />} />
