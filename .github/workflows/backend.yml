@@ -1,0 +1,59 @@
+name: Backend Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/**'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  backend-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Prepare deployment files
+        run: |
+          mkdir -p api-backend
+          cp server/package.json package.json
+          cp server/package-lock.json package-lock.json
+          cp -r server/* api-backend/ 2>/dev/null || true
+          rm -rf api-backend/node_modules
+
+      - name: Create backend deployment archive
+        run: |
+          cd api-backend && zip -r ../api-backend.zip . && cd ..
+
+      - name: Copy deployment artifacts to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          source: "api-backend.zip,package.json,package-lock.json"
+          target: "C:/inetpub/wwwroot/dev.imraninnovations/"
+
+      - name: Deploy backend
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          script: |
+            powershell -NoProfile -Command "$ErrorActionPreference='Stop';$d='C:\inetpub\wwwroot\dev.imraninnovations';$backendPath=\"$d\backend\";$env:PATH=[System.Environment]::GetEnvironmentVariable('Path','Machine')+';'+[System.Environment]::GetEnvironmentVariable('Path','User');Set-Location $d;if(Test-Path \"$backendPath\.env\"){Copy-Item \"$backendPath\.env\" \"$backendPath\.env.backup\"};if(-not(Test-Path $backendPath)){New-Item -ItemType Directory -Path $backendPath -Force|Out-Null};Expand-Archive -Path api-backend.zip -DestinationPath $backendPath -Force;if(Test-Path \"$backendPath\.env.backup\"){Move-Item -Force \"$backendPath\.env.backup\" \"$backendPath\.env\"};Remove-Item -Force api-backend.zip;Set-Location $backendPath;if(Test-Path node_modules){Remove-Item -Recurse -Force node_modules};npm ci --production;$p=pm2 list|Select-String 'management-api';if($p){pm2 delete management-api};pm2 start server.js --name management-api --cwd $backendPath;pm2 save;Write-Host 'Waiting for server...';$m=15;$a=0;$h=$false;while($a -lt $m){$a++;try{$r=Invoke-WebRequest -Uri 'http://127.0.0.1:5000/' -UseBasicParsing -TimeoutSec 2;if($r.StatusCode -eq 200){Write-Host '✅ Health check passed!';$h=$true;break}}catch{Write-Host \"Attempt $a/$m : Waiting...\";Start-Sleep -Seconds 2}};if(-not $h){Write-Host '❌ Health check failed';pm2 logs management-api --lines 30 --nostream;exit 1}"
+
