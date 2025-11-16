@@ -1,15 +1,15 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { LogOut, Search } from "lucide-react";
+import { LogOut, Search, Menu } from "lucide-react";
 
 interface HeaderProps {
   handleLogout: () => void;
+  toggleSidebar: () => void;   // <-- Add this
 }
 
-const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
+const Header: React.FC<HeaderProps> = ({ handleLogout, toggleSidebar }) => {
   const location = useLocation();
 
-  // Map paths to titles
   const titles: Record<string, string> = {
     "/dashboard": "Dashboard",
     "/addnew": "Add New Product",
@@ -22,14 +22,23 @@ const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-black dark:text-white flex justify-between h-20 p-5 border-b dark:border-gray-700 items-center">
-      {/* Left section */}
-      <div className="flex space-x-3.5 ml-5 items-center">
+
+      {/* === LEFT SECTION === */}
+      <div className="flex items-center space-x-3 ml-3">
+
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+        <Menu/>
+        </button>
+
         <h3 className="font-bold text-xl">{title}</h3>
       </div>
 
-      {/* Right section */}
+      {/* === RIGHT SECTION === */}
       <div className="flex space-x-6 items-center mr-10">
-        {/* Search bar */}
         <div className="relative w-80">
           <input
             type="text"
@@ -41,7 +50,6 @@ const Header: React.FC<HeaderProps> = ({ handleLogout }) => {
           </div>
         </div>
 
-        {/* User / Logout */}
         <div className="flex items-center space-x-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-3xl p-1">
           <button className="w-8 h-8 border rounded-3xl bg-gray-100 dark:bg-gray-800 dark:border-gray-600 text-black dark:text-white flex items-center justify-center">
             J

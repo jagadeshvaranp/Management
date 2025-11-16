@@ -11,4 +11,4 @@ const StockSchema = new mongoose.Schema({
   versionKey: false
 });
 
-export default mongoose.model("Stock", StockSchema);
+export default mongoose.model("products", StockSchema);

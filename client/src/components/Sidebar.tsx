@@ -6,15 +6,17 @@ import {
   UserRound,
   Settings,
   LogOut,
+  NotebookTabs,
 } from "lucide-react";
 
 interface SidebarProps {
-  handleLogout: () => void; // Receive logout from parent
+  handleLogout: () => void;
 }
 
 export default function Sidebar({ handleLogout }: SidebarProps) {
   return (
     <div className="w-60 h-screen bg-gradient-to-b from-gray-50 border-r border-gray-200 flex flex-col">
+      
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold">
@@ -23,91 +25,94 @@ export default function Sidebar({ handleLogout }: SidebarProps) {
         </h1>
       </div>
 
-      {/* Scroll Area */}
-      <div className="flex-1 overflow-y-auto py-4 px-6">
+      {/* Menu */}
+      <div className="flex-1 overflow-y-auto py-4 px-6 space-y-2">
+
+        {/* Dashboard */}
         <NavLink
           to="/dashboard"
-          className={({ isActive }) =>
-            `flex w-full items-center px-4 py-3 gap-2 rounded-2xl ${
-              isActive
-                ? "bg-cyan-500 text-white"
-                : " hover:bg-gray-200 hover:text-cyan-400"
-            }`
+          className={ ({ isActive }) =>
+            `flex w-full items-center px-4 py-3 gap-3  hidden rounded-2xl transition 
+            ${isActive 
+              ? "bg-cyan-500 text-white shadow-md" 
+              : "text-gray-700 hover:bg-gray-200 hover:text-cyan-500"}`
           }
         >
-          <LayoutDashboard />
-          <span className="text-base font-medium">Dashboard</span>
+          <LayoutDashboard className="w-5 h-5" />
+          Dashboard
         </NavLink>
 
+        {/* Products */}
         <NavLink
           to="/addnew"
           className={({ isActive }) =>
-            `flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg ${
-              isActive
-                ? "bg-cyan-500 text-white"
-                : "text-gray-600 hover:bg-gray-200 hover:text-cyan-400"
-            }`
+            `flex w-full items-center px-4 py-3 gap-3 rounded-2xl transition 
+            ${isActive 
+              ? "bg-cyan-500 text-white shadow-md" 
+              : "text-gray-700 hover:bg-gray-200 hover:text-cyan-500"}`
           }
         >
-          <UserRound />
-          <span className="text-base font-medium">Products</span>
+          <UserRound className="w-5 h-5" />
+          Products
         </NavLink>
 
+        {/* Categories */}
         <NavLink
           to="/categories"
           className={({ isActive }) =>
-            `flex w-full items-center mt-3 gap-2 px-4 py-3 rounded-lg ${
-              isActive
-                ? "bg-cyan-500 text-white"
-                : "text-gray-600 hover:bg-gray-200 hover:text-cyan-400"
-            }`
+            `flex w-full items-center px-4 py-3 gap-3 rounded-2xl transition 
+            ${isActive 
+              ? "bg-cyan-500 text-white shadow-md" 
+              : "text-gray-700 hover:bg-gray-200 hover:text-cyan-500"}`
           }
         >
-          <UserRound />
-          <span className="text-base font-medium">Categories</span>
+          <NotebookTabs className="w-5 h-5" />
+          Categories
         </NavLink>
 
+        {/* Static Analytics */}
         <NavLink
           to="/products"
           className={({ isActive }) =>
-            `w-full flex items-center mt-3 gap-2 px-4 py-3 rounded-lg ${
-              isActive
-                ? "bg-cyan-500 text-white"
-                : "text-gray-600 hover:bg-gray-200 hover:text-cyan-400"
-            }`
+            `flex w-full items-center px-4 py-3 gap-3 hidden rounded-2xl transition 
+            ${isActive 
+              ? "bg-cyan-500 text-white shadow-md" 
+              : "text-gray-700 hover:bg-gray-200 hover:text-cyan-500"}`
           }
         >
-          <ChartNoAxesCombined />
-          <span className="text-base font-medium">Static Analytics</span>
+          <ChartNoAxesCombined className="w-5 h-5" />
+          Static Analytics
         </NavLink>
 
+        {/* Inventory */}
         <NavLink
           to="/invortry"
           className={({ isActive }) =>
-            `w-full flex items-center mt-3 gap-2 px-4 py-3 rounded-lg ${
-              isActive
-                ? "bg-cyan-500 text-white"
-                : "text-gray-600 hover:bg-gray-200 hover:text-cyan-400"
-            }`
+            `flex w-full items-center px-4 py-3 gap-3 rounded-2xl hidden transition 
+            ${isActive 
+              ? "bg-cyan-500 text-white shadow-md" 
+              : "text-gray-700 hover:bg-gray-200 hover:text-cyan-500"}`
           }
         >
-          <BookText />
-          <span className="text-base font-medium">Inventory</span>
+          <BookText className="w-5 h-5" />
+          Inventory
         </NavLink>
 
-        {/* Settings (no route yet) */}
-        <button className="w-full flex items-center gap-2 px-4 py-3 mt-4 rounded-lg text-gray-600 hover:bg-gray-300 hover:text-cyan-400">
-          <Settings />
-          <span className="text-base font-medium">Setting</span>
+        {/* Settings (no route) */}
+        <button
+          className="flex w-full items-center px-4 py-3 gap-3 rounded-2xl hidden text-gray-700 hover:bg-gray-300 hover:text-cyan-500 transition"
+        >
+          <Settings className="w-5 h-5" />
+          Settings
         </button>
 
-        {/* Logout button */}
+        {/* Logout */}
         <button
-          onClick={handleLogout} // ✅ Call parent logout function
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-200 hover:text-red-500"
+          onClick={handleLogout}
+          className="flex w-full items-center hidden px-4 py-3 gap-3 rounded-2xl text-gray-700 hover:bg-gray-200 hover:text-red-500 transition"
         >
-          <LogOut />
-          <span className="font-medium text-base">Logout</span>
+          <LogOut className="w-5 h-5" />
+          Logout
         </button>
       </div>
     </div>

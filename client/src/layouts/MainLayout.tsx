@@ -1,33 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+// Components
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 
+// Pages
 import Dashboard from "../pages/Dashboard";
 import Products from "../pages/Products";
 import Invortry from "../pages/Invortry";
 import Addnew from "../pages/Addnew";
+import Categories from "../pages/Categories";
 
+// Auth Components
 import LoginForm from "../components/LoginForm";
 import RegisterForm from "../components/RegisterForm";
-import Categories from "../pages/Categories";
 
 const MainLayout: React.FC = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [notification, setNotification] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Backend URL
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Load login status from localStorage
+  // Load login state
   useEffect(() => {
     const user = localStorage.getItem("loggedInUser");
     if (user) setLoggedIn(true);
   }, []);
 
-  // Handle login
+  // 🔐 Login handler
   const handleLogin = async (username: string, password: string) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -44,17 +47,15 @@ const MainLayout: React.FC = () => {
         setNotification("");
       } else {
         setNotification(data.error || "Login failed");
-        if (data.error === "User not found") {
-          setShowRegister(true);
-        }
+        if (data.error === "User not found") setShowRegister(true);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setNotification("Server error. Try again later.");
     }
   };
 
-  // Handle registration
+  // 📝 Register handler
   const handleRegister = async (username: string, password: string) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
@@ -66,18 +67,18 @@ const MainLayout: React.FC = () => {
       const data = await res.json();
 
       if (res.status === 201) {
-        setNotification("Registration successful! Please login now.");
+        setNotification("Registration successful! Please login.");
         setShowRegister(false);
       } else {
         setNotification(data.error || "Registration failed");
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setNotification("Server error. Try again later.");
     }
   };
 
-  // Logout
+  // 🚪 Logout handler
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     setLoggedIn(false);
@@ -85,8 +86,13 @@ const MainLayout: React.FC = () => {
 
   return (
     <BrowserRouter>
+      {/* ---------- LOGIN & REGISTER SCREEN ---------- */}
       {!loggedIn ? (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div
+          className="flex flex-col items-center justify-center min-h-screen 
+                     bg-gray-200/50 backdrop-blur-sm p-4"
+        >
+          {/* Notification */}
           {notification && (
             <div className="mb-4 p-3 bg-yellow-200 text-yellow-800 rounded">
               {notification}
@@ -106,11 +112,23 @@ const MainLayout: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="flex min-h-screen bg-gray-100">
-          <Sidebar />
-          <main className="flex-1 w-full md:w-4/5">
-            <Header handleLogout={handleLogout} />
+        /* ---------- MAIN APP LAYOUT ---------- */
+        <div
+          className="flex min-h-screen bg-gradient-to-br from-gray-200 
+                     to-gray-100 backdrop-blur-xl"
+        >
+          {/* Sidebar */}
+          {isSidebarOpen && <Sidebar />}
 
+          {/* Main Content */}
+          <main className="flex-1 w-full md:w-4/5 backdrop-blur-sm bg-white/60 shadow-lg">
+            {/* Header */}
+            <Header
+              handleLogout={handleLogout}
+              toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            />
+
+            {/* Routes */}
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<Dashboard />} />
