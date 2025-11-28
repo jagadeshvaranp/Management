@@ -1,10 +1,11 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
-import { LogOut, Search, Menu } from "lucide-react";
+import { Search, Menu } from "lucide-react";
+import ProfileDropdown from "./ProfileDropdown"; // Import the new component
 
 interface HeaderProps {
   handleLogout: () => void;
-  toggleSidebar: () => void;   // <-- Add this
+  toggleSidebar: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ handleLogout, toggleSidebar }) => {
@@ -22,16 +23,15 @@ const Header: React.FC<HeaderProps> = ({ handleLogout, toggleSidebar }) => {
 
   return (
     <div className="bg-white dark:bg-gray-900 text-black dark:text-white flex justify-between h-20 p-5 border-b dark:border-gray-700 items-center">
-
+      
       {/* === LEFT SECTION === */}
       <div className="flex items-center space-x-3 ml-3">
-
         {/* Sidebar Toggle Button */}
         <button
           onClick={toggleSidebar}
           className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
         >
-        <Menu/>
+          <Menu />
         </button>
 
         <h3 className="font-bold text-xl">{title}</h3>
@@ -39,6 +39,8 @@ const Header: React.FC<HeaderProps> = ({ handleLogout, toggleSidebar }) => {
 
       {/* === RIGHT SECTION === */}
       <div className="flex space-x-6 items-center mr-10">
+        
+        {/* Search Bar */}
         <div className="relative w-80">
           <input
             type="text"
@@ -50,14 +52,10 @@ const Header: React.FC<HeaderProps> = ({ handleLogout, toggleSidebar }) => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 hover:bg-gray-300 dark:hover:bg-gray-700 rounded-3xl p-1">
-          <button className="w-8 h-8 border rounded-3xl bg-gray-100 dark:bg-gray-800 dark:border-gray-600 text-black dark:text-white flex items-center justify-center">
-            J
-          </button>
-          <button onClick={handleLogout}>
-            <LogOut size={20} className="hover:text-red-500 dark:hover:text-red-400" />
-          </button>
-        </div>
+        {/* User Profile Dropdown */}
+        {/* This replaces the old J button and Logout button */}
+        <ProfileDropdown handleLogout={handleLogout} />
+        
       </div>
     </div>
   );
