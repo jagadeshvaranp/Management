@@ -22,9 +22,8 @@ const MainLayout: React.FC = () => {
   const [notification, setNotification] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Use relative path - will be proxied by IIS web.config in production
-  // or Vite proxy in development
-  const API_BASE = "/api";
+  // Use environment variable for API base URL (must be set in .env file)
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   // Load login state
   useEffect(() => {
@@ -35,32 +34,43 @@ const MainLayout: React.FC = () => {
   // 🔐 Login handler
   const handleLogin = async (username: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
+      console.log('🔐 Attempting login to:', `${API_BASE}/api/auth/login`);
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await res.json();
+      console.log('📡 Response status:', res.status, res.statusText);
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (e) {
+        const text = await res.text();
+        console.error('❌ Failed to parse response as JSON:', text);
+        setNotification(`Server error (${res.status}): ${res.statusText}`);
+        return;
+      }
 
       if (res.ok) {
         localStorage.setItem("loggedInUser", username);
         setLoggedIn(true);
         setNotification("");
       } else {
-        setNotification(data.error || "Login failed");
+        setNotification(data.error || `Login failed (${res.status})`);
         if (data.error === "User not found") setShowRegister(true);
       }
     } catch (error) {
-      console.error(error);
-      setNotification("Server error. Try again later.");
+      console.error('❌ Login error:', error);
+      setNotification("Server error. Is the backend running on port 5000?");
     }
   };
 
   // 📝 Register handler
   const handleRegister = async (username: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

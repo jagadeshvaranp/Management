@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle, XCircle, X, Edit2, Trash2, Plus, Loader } from "lucide-react";
 
-// Use relative path - will be proxied by IIS web.config in production
-// or Vite proxy in development
-const API_BASE = "/api/categories";
+// Use environment variable for API base URL (must be set in .env file)
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/categories`;
 
 // --- Toast Component using lucide-react icons ---
 const Toast = ({ message, type, onClose }) => {

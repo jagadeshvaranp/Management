@@ -1,9 +1,5 @@
 /// <reference types="vite/client" />
 
-export interface LoginProps {
-  setLoggedIn: (value: boolean) => void;
-}
-
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
 }
@@ -11,3 +7,4 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+

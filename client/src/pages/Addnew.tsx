@@ -20,7 +20,8 @@ interface FormData {
   unitPrice: string;
 }
 
-const API_BASE = "/api/stocks";
+// Use environment variable for API base URL (must be set in .env file)
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/stocks`;
 
 const FertilizerStockManagement: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({

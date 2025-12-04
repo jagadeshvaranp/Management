@@ -11,13 +11,32 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+// Manual CORS headers - most permissive setup
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`);
+  
+  // Set CORS headers manually
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin');
+  res.header('Access-Control-Expose-Headers', 'Content-Type');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
+
+// Also use CORS middleware as backup
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
+  credentials: false,
+}));
+
 app.use(express.json());
 
 // Connect to MongoDB
@@ -42,5 +61,7 @@ app.use("/api/categories", categoryRoutes); // <-- FIXED import works
 app.get("/", (req, res) => res.send({ ok: true, message: "API running" }));
 
 // Start Server
-const PORT = 5000;
+// Use 5001 for development (macOS AirPlay uses port 5000)
+// Use 5000 for production (set via PORT env var)
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
