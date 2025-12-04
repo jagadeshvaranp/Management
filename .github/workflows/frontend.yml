@@ -42,10 +42,6 @@ jobs:
             echo "❌ Error: index.html not found in dist folder!"
             exit 1
           fi
-          if [ ! -f "client/dist/web.config" ]; then
-            echo "❌ Error: web.config not found in dist folder!"
-            exit 1
-          fi
           if [ ! -d "client/dist/assets" ]; then
             echo "⚠️ Warning: assets folder not found in dist folder!"
           else
@@ -53,10 +49,11 @@ jobs:
             ls -la client/dist/assets/ | head -10
           fi
           echo "✅ Build verification complete"
+          echo "ℹ️ Note: web.config should be placed manually on the server"
 
       - name: Create frontend deployment archive
         run: |
-          cd client/dist && zip -r ../../api-frontend.zip . && cd ../..
+          cd client/dist && zip -r ../../api-frontend.zip . -x "web.config" && cd ../..
 
       - name: Copy deployment artifacts to server
         uses: appleboy/scp-action@v1
@@ -74,5 +71,5 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           password: ${{ secrets.EC2_PASSWORD }}
           script: |
-            powershell -NoProfile -Command "$ErrorActionPreference='Stop';$d='C:\inetpub\wwwroot\inventory.jagadesh.info';$distPath=\"$d\dist\";Set-Location $d;if(-not(Test-Path $distPath)){New-Item -ItemType Directory -Path $distPath -Force|Out-Null};if(Test-Path $distPath){Get-ChildItem $distPath|Remove-Item -Recurse -Force};Expand-Archive -Path api-frontend.zip -DestinationPath $distPath -Force;Remove-Item -Force api-frontend.zip;Write-Host 'Verifying deployment...';if(Test-Path \"$distPath\index.html\"){Write-Host '✅ index.html found'}else{Write-Host '❌ index.html NOT found';exit 1};if(Test-Path \"$distPath\web.config\"){Write-Host '✅ web.config found'}else{Write-Host '⚠️ web.config NOT found - URL Rewrite may not work'};if(Test-Path \"$distPath\assets\"){Write-Host '✅ assets folder found'}else{Write-Host '⚠️ assets folder NOT found'};Write-Host '✅ Frontend deployed successfully to dist folder!'"
+            powershell -NoProfile -Command "$ErrorActionPreference='Stop';$d='C:\inetpub\wwwroot\inventory.jagadesh.info';$distPath=\"$d\dist\";Set-Location $d;if(-not(Test-Path $distPath)){New-Item -ItemType Directory -Path $distPath -Force|Out-Null};$webConfigBackup=$null;if(Test-Path \"$distPath\web.config\"){$webConfigBackup=Get-Content \"$distPath\web.config\" -Raw;Write-Host '📋 Backing up existing web.config'};if(Test-Path $distPath){Get-ChildItem $distPath|Remove-Item -Recurse -Force};Expand-Archive -Path api-frontend.zip -DestinationPath $distPath -Force;if($webConfigBackup){Set-Content -Path \"$distPath\web.config\" -Value $webConfigBackup -NoNewline;Write-Host '✅ Restored web.config from server'};Remove-Item -Force api-frontend.zip;Write-Host 'Verifying deployment...';if(Test-Path \"$distPath\index.html\"){Write-Host '✅ index.html found'}else{Write-Host '❌ index.html NOT found';exit 1};if(Test-Path \"$distPath\web.config\"){Write-Host '✅ web.config found'}else{Write-Host '⚠️ web.config NOT found - Please place it manually on the server'};if(Test-Path \"$distPath\assets\"){Write-Host '✅ assets folder found'}else{Write-Host '⚠️ assets folder NOT found'};Write-Host '✅ Frontend deployed successfully to dist folder!'"
 

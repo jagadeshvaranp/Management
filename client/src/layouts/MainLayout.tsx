@@ -22,7 +22,9 @@ const MainLayout: React.FC = () => {
   const [notification, setNotification] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // Use relative path - will be proxied by IIS web.config in production
+  // or Vite proxy in development
+  const API_BASE = "/api";
 
   // Load login state
   useEffect(() => {
@@ -33,7 +35,7 @@ const MainLayout: React.FC = () => {
   // 🔐 Login handler
   const handleLogin = async (username: string, password: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -58,7 +60,7 @@ const MainLayout: React.FC = () => {
   // 📝 Register handler
   const handleRegister = async (username: string, password: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
