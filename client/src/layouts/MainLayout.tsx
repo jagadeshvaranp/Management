@@ -22,8 +22,10 @@ const MainLayout: React.FC = () => {
   const [notification, setNotification] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // Use environment variable for API base URL (must be set in .env file)
-  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+  // API Base URL from environment variable
+  // Local: VITE_API_BASE_URL=http://localhost:5001 (from .env)
+  // Production: VITE_API_BASE_URL="" (set in workflow, uses relative paths)
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
   // Load login state
   useEffect(() => {
@@ -34,8 +36,9 @@ const MainLayout: React.FC = () => {
   // 🔐 Login handler
   const handleLogin = async (username: string, password: string) => {
     try {
-      console.log('🔐 Attempting login to:', `${API_BASE}/api/auth/login`);
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const loginUrl = `${API_BASE}/api/auth/login`;
+      console.log('🔐 Attempting login to:', loginUrl);
+      const res = await fetch(loginUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

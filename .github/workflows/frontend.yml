@@ -29,6 +29,9 @@ jobs:
 
       - name: Build frontend
         working-directory: client
+        env:
+          # Use empty string for production to use relative paths (proxied by IIS)
+          VITE_API_BASE_URL: ""
         run: npm run build
 
       - name: Verify build output

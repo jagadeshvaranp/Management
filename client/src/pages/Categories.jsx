@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle, XCircle, X, Edit2, Trash2, Plus, Loader } from "lucide-react";
 
-// Use environment variable for API base URL (must be set in .env file)
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api/categories`;
+// API Base URL from environment variable
+// Local: VITE_API_BASE_URL=http://localhost:5001 (from .env)
+// Production: VITE_API_BASE_URL="" (set in workflow, uses relative paths)
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL || ""}/api/categories`;
 
 // --- Toast Component using lucide-react icons ---
 const Toast = ({ message, type, onClose }) => {
